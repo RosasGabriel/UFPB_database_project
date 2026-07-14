@@ -33,16 +33,14 @@ UPDATE PACIENTE
 SET num_convenio = 'GEAP-55443'
 WHERE id_pessoa = 4;
 
--- Para conferir a alteração:
+-- Verificar a alteração:
 -- SELECT * FROM PACIENTE WHERE id_pessoa = 4;
 
 -- Tentativa 1: Tentar deletar um registro faturado (id_atendimento = 5, id_procedimento = 3 -> pode_remover é FALSE). 
--- O banco não vai deletar nenhuma linha.
 DELETE FROM PROCEDIMENTO_REALIZADO
 WHERE id_atendimento = 5 AND id_procedimento = 3 AND pode_remover = TRUE;
 
 -- Tentativa 2: Tentar deletar um registro NÃO faturado (id_atendimento = 1, id_procedimento = 1 -> pode_remover é TRUE).
--- Esse vai deletar com sucesso.
 DELETE FROM PROCEDIMENTO_REALIZADO
 WHERE id_atendimento = 1 AND id_procedimento = 1 AND pode_remover = TRUE;
 
