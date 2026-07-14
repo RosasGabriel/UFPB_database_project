@@ -1,4 +1,4 @@
--- Caso todos os IDs existam (Roda com sucesso):
+-- Caso todos os IDs existam:
 INSERT INTO ATENDIMENTO (data_hora, duracao_minutos, id_paciente, id_residente, id_preceptor, id_unidade)
 VALUES ('2026-07-13 14:00:00', 40, 1, 6, 11, 2);
 
@@ -52,3 +52,14 @@ FROM ATENDIMENTO a
 JOIN RESIDENTE r ON a.id_residente = r.id_pessoa
 JOIN PESSOA p ON r.id_pessoa = p.id_pessoa
 GROUP BY r.id_pessoa, p.nome;
+
+-- ======================================= Consultas analíticas =======================================
+SELECT 
+    DENSE_RANK() OVER (ORDER BY COUNT(a.id_atendimento) DESC) AS posicao_ranking,
+    p.nome AS nome_residente,
+    COUNT(a.id_atendimento) AS total_atendimentos
+FROM ATENDIMENTO a
+JOIN RESIDENTE r ON a.id_residente = r.id_pessoa
+JOIN PESSOA p ON r.id_pessoa = p.id_pessoa
+GROUP BY r.id_pessoa, p.nome;
+
