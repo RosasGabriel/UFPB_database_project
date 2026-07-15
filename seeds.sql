@@ -101,9 +101,29 @@ INSERT INTO ATENDIMENTO (id_atendimento, data_hora, duracao_minutos, id_paciente
 (8,  '2026-07-08 16:45:00', 90, 3, 8,  13, 1), -- Paciente 3 novamente
 (9,  '2026-07-09 21:15:00', 45, 4, 9,  14, 2), -- Paciente 4 novamente
 (10, '2026-07-10 07:45:00', 55, 5, 10, 15, 2); -- Paciente 5 novamente
+(11, '2026-07-11 08:00:00', 40, 1, 6,  11, 3), -- Dr. Arnaldo (Supervisão 3)
+(12, '2026-07-11 10:30:00', 50, 2, 6,  11, 3), -- Dr. Arnaldo (Supervisão 4)
+(13, '2026-07-12 14:15:00', 30, 3, 7,  11, 2), -- Dr. Arnaldo (Supervisão 5)
+(14, '2026-07-12 16:00:00', 45, 4, 7,  11, 2), -- Dr. Arnaldo (Supervisão 6)
+(15, '2026-07-13 09:00:00', 60, 5, 10, 11, 2), -- Dr. Arnaldo (Supervisão 7)
+(16, '2026-07-13 11:30:00', 35, 1, 7,  12, 2), -- Dra. Sandra (Supervisão 3)
+(17, '2026-07-14 08:15:00', 25, 2, 7,  12, 2), -- Dra. Sandra (Supervisão 4)
+(18, '2026-07-14 13:00:00', 40, 3, 10, 12, 2), -- Dra. Sandra (Supervisão 5)
+(19, '2026-07-14 15:45:00', 55, 4, 10, 12, 2), -- Dra. Sandra (Supervisão 6)
+(20, '2026-07-15 10:00:00', 70, 5, 8,  13, 1),
+(21, '2026-07-15 14:30:00', 30, 1, 8,  13, 1),
+(22, '2026-07-16 09:15:00', 20, 2, 9,  14, 2),
+(23, '2026-07-16 11:00:00', 45, 3, 9,  14, 2),
+(24, '2026-07-17 16:00:00', 35, 4, 10, 15, 2),
+(25, '2026-07-17 19:30:00', 50, 5, 6,  11, 3), -- Dr. Arnaldo (Supervisão 8)
+(26, '2026-07-18 08:00:00', 40, 1, 7,  12, 2), -- Dra. Sandra (Supervisão 7)
+(27, '2026-07-18 10:30:00', 60, 2, 8,  13, 1),
+(28, '2026-07-19 14:00:00', 90, 3, 9,  14, 2),
+(29, '2026-07-19 22:00:00', 40, 4, 10, 15, 2),
+(30, '2026-07-20 07:30:00', 30, 5, 6,  11, 3); -- Dr. Arnaldo (Supervisão 9)
 
 -- Ajustando a sequência de IDs gerada para a tabela Atendimento no PostgreSQL
-SELECT setval('atendimento_id_atendimento_seq', 10);
+SELECT setval('atendimento_id_atendimento_seq', 30);
 
 -- =============================================================================
 -- 9. INSERÇÃO NA TABELA PROCEDIMENTO_REALIZADO (10 Procedimentos) - CORRIGIDO
@@ -112,14 +132,33 @@ INSERT INTO PROCEDIMENTO_REALIZADO (id_atendimento, id_procedimento, quantidade,
 (1,  1, 1, 25, 'Sutura simples no braço esquerdo da criança.', TRUE),       -- Atendimento 1 realizou Procedimento 1 (Sutura)
 (2,  5, 1, 10, 'Eletrocardiograma de rotina para queixa de palpitação.', TRUE), -- Atendimento 2 realizou Procedimento 5 (ECG)
 (3,  2, 2, 35, 'Dois acessos venosos periféricos estabelecidos sem intercorrências.', TRUE), -- Atendimento 3 realizou Procedimento 2 (Acesso)
-(4,  3, 3, 20, 'Eletrocardiogramas seriados.', TRUE),                      -- Atendimento 4 realizou Procedimento 3 (Intubação) - Corrigido
-(5,  3, 2, 45, 'Acesso venoso central guiado por ultrassom.', FALSE),       -- Atendimento 5 realizou Procedimento 3 (Intubação) - Corrigido
-(6,  1, 1, 15, 'Sutura na face, paciente colaborativo.', TRUE),            -- Atendimento 6 realizou Procedimento 1 (Sutura) - Ajustado ID procedimento para 1
-(7,  3, 1, 20, 'Intubação realizada sob supervisão direta.', FALSE),        -- Atendimento 7 realizou Procedimento 3 (Intubação) - Ajustado ID procedimento para 3
+(4,  3, 3, 20, 'Eletrocardiogramas seriados.', TRUE),                      -- Atendimento 4 realizou Procedimento 3 (Intubação) 
+(5,  3, 2, 45, 'Acesso venoso central guiado por ultrassom.', FALSE),       -- Atendimento 5 realizou Procedimento 3 (Intubação)
+(6,  1, 1, 15, 'Sutura na face, paciente colaborativo.', TRUE),            -- Atendimento 6 realizou Procedimento 1 (Sutura)
+(7,  3, 1, 20, 'Intubação realizada sob supervisão direta.', FALSE),        -- Atendimento 7 realizou Procedimento 3 (Intubação)
 (8,  4, 1, 35, 'Curativo pós-cirúrgico de grande porte.', TRUE),            -- Atendimento 8 realizou Procedimento 4 (Curativo)
-(9,  5, 1, 15, 'ECG rápido para verificação.', TRUE),                      -- Atendimento 9 realizou Procedimento 5 (ECG) - Ajustado ID procedimento para 5
-(10, 1, 1, 25, 'Sutura em região plantar.', TRUE);                         -- Atendimento 10 realizou Procedimento 1 (Sutura) - Ajustado ID procedimento para 1
-
+(9,  5, 1, 15, 'ECG rápido para verificação.', TRUE),                      -- Atendimento 9 realizou Procedimento 5 (ECG)
+(10, 1, 1, 25, 'Sutura em região plantar.', TRUE);                         -- Atendimento 10 realizou Procedimento 1 (Sutura)
+(11, 1, 1, 35, 'Sutura simples sob supervisão.', TRUE),
+(12, 5, 1, 12, 'ECG de controle.', TRUE),
+(13, 2, 1, 40, 'Acesso venoso central.', TRUE),
+(14, 4, 1, 30, 'Curativo pós-cirúrgico.', TRUE),
+(15, 3, 1, 15, 'Intubação rápida de emergência.', FALSE), -- Faturado
+(16, 1, 2, 40, 'Duas suturas pequenas.', TRUE),
+(17, 5, 1, 10, 'ECG de rotina.', TRUE),
+(18, 2, 1, 35, 'Acesso venoso estabelecido.', TRUE),
+(19, 4, 1, 25, 'Curativo simples.', TRUE),
+(20, 3, 1, 18, 'Intubação em leito de UTI.', FALSE), -- Faturado
+(21, 5, 1, 11, 'ECG de controle.', TRUE),
+(22, 1, 1, 20, 'Sutura em dedo da mão.', TRUE),
+(23, 4, 1, 35, 'Troca de curativo complexo.', TRUE),
+(24, 2, 1, 45, 'Acesso central guiado.', TRUE),
+(25, 5, 1, 15, 'ECG para paciente cardiopata.', TRUE),
+(26, 1, 1, 25, 'Sutura de ferimento cortante.', TRUE),
+(27, 3, 1, 14, 'Intubação sob supervisão.', FALSE), -- Faturado
+(28, 2, 1, 38, 'Acesso venoso difícil.', TRUE),
+(29, 4, 1, 30, 'Curativo padrão.', TRUE),
+(30, 5, 1, 10, 'ECG rápido.', TRUE);
 -- =============================================================================
 -- 10. INSERÇÃO NA TABELA ESCALA (Para deixar o banco completo e funcional)
 -- =============================================================================
