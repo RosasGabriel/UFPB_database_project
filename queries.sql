@@ -63,3 +63,15 @@ JOIN RESIDENTE r ON a.id_residente = r.id_pessoa
 JOIN PESSOA p ON r.id_pessoa = p.id_pessoa
 GROUP BY r.id_pessoa, p.nome;
 
+SELECT 
+    p.nome AS nome_preceptor,
+    COUNT(a.id_atendimento) AS total_supervisoes
+FROM ATENDIMENTO a
+JOIN PRECEPTOR prec ON a.id_preceptor = prec.id_pessoa
+JOIN PESSOA p ON prec.id_pessoa = p.id_pessoa
+WHERE EXTRACT(MONTH FROM a.data_hora) = 7 
+  AND EXTRACT(YEAR FROM a.data_hora) = 2026
+GROUP BY prec.id_pessoa, p.nome
+HAVING COUNT(a.id_atendimento) > 2;
+
+
