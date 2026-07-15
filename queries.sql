@@ -72,6 +72,27 @@ JOIN PESSOA p ON prec.id_pessoa = p.id_pessoa
 WHERE EXTRACT(MONTH FROM a.data_hora) = 7 
   AND EXTRACT(YEAR FROM a.data_hora) = 2026
 GROUP BY prec.id_pessoa, p.nome
-HAVING COUNT(a.id_atendimento) > 2;
+HAVING COUNT(a.id_atendimento) > 5;
 
+SELECT 
+    u.nome AS unidade,
+    p.nome AS nome_residente,
+    COUNT(e.id_escala) AS quantidade_plantoes
+FROM ESCALA e
+JOIN UNIDADE u ON e.id_unidade = u.id_unidade
+JOIN RESIDENTE r ON e.id_residente = r.id_pessoa
+JOIN PESSOA p ON r.id_pessoa = p.id_pessoa
+GROUP BY u.nome, r.id_pessoa, p.nome
+ORDER BY u.nome, quantidade_plantoes DESC;
 
+SELECT pac_p.nome AS nome_paciente
+FROM PACIENTE pac
+JOIN PESSOA pac_p ON pac.id_pessoa = pac_p.id_pessoa
+WHERE NOT EXISTS (
+    SELECT 1 
+    FROM PROCEDIMENTO_REALIZADO pr
+    JOIN PROCEDIMENTO proc ON pr.id_procedimento = proc.id_procedimento
+    JOIN ATENDIMENTO at ON pr.id_atendimento = at.id_atendimento
+    WHERE at.id_paciente = pac.id_pessoa 
+      AND proc.nome IN ('Intubação Orotraqueal', 'Acesso Venoso Central') -- Considerados de "Alto Risco" no nosso escopo
+);
