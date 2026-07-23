@@ -60,6 +60,13 @@ WHERE id_atendimento = 5 AND id_procedimento = 3 AND pode_remover = TRUE;
 DELETE FROM PROCEDIMENTO_REALIZADO
 WHERE id_atendimento = 1 AND id_procedimento = 1 AND pode_remover = TRUE;
 
+-- Consulta os IDs reais de Residentes e Preceptores cadastrados (consulta adicionada para finalidade de testes)
+SELECT p.id_pessoa, p.nome, 'RESIDENTE' AS tipo 
+FROM RESIDENTE r JOIN PESSOA p ON r.id_pessoa = p.id_pessoa
+UNION ALL
+SELECT p.id_pessoa, p.nome, 'PRECEPTOR' AS tipo 
+FROM PRECEPTOR prec JOIN PESSOA p ON prec.id_pessoa = p.id_pessoa;
+
 
 -- =============================================================================
 -- PARTE 2: CONSULTAS ANALÍTICAS
