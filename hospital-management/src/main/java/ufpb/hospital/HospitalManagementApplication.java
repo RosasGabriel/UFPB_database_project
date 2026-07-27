@@ -3,35 +3,43 @@ package ufpb.hospital;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
 
-import ufpb.hospital.repository.ResidenteRepository;
 import ufpb.hospital.service.EscalaService;
 
 @SpringBootApplication
-public class HospitalManagementApplication {
+public class HospitalManagementApplication implements CommandLineRunner {
+
+    private final EscalaService escalaService;
+
+    public HospitalManagementApplication(EscalaService escalaService) {
+        this.escalaService = escalaService;
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(HospitalManagementApplication.class, args);
     }
 
-    @Bean
-    public CommandLineRunner testarAplicacao(
-            ResidenteRepository residenteRepository,
-            EscalaService escalaService) {
-        return args -> {
-            System.out.println("\n--------------------------------------------------");
-            System.out.println("=== TESTE DE INTEGRAÇÃO SPRING + POSTGRESQL ===");
-            
-            // 1. Consulta JPA Básica
-            long total = residenteRepository.count();
-            System.out.println("Residentes cadastrados no banco: " + total);
-            
-            residenteRepository.findAll().forEach(r -> 
-			System.out.println("-> Residente ID " + r.getIdPessoa() + ": " + r.getNome() + " | Torce Flamengo? " + r.getIsFlamengo())
-		);
+    @Override
+    public void run(String... args) throws Exception {
+        System.out.println("\n--- [TESTE ORM + TRIGGER] Alocação de Escala ---");
 
-            System.out.println("--------------------------------------------------\n");
-        };
+        try {
+            // Supondo IDs válidos no seu banco: Residente 6, Preceptor 1, Unidade 1
+            // Usando um dia/turno específico para o teste (ex: "Sábado", "Noite")
+            System.out.println("1. Tentando alocar residente em escala via JPA...");
+            var escalaCriada = escalaService.alocarResidenteEmEscala(6, 1, 1, "Sábado", "Noite");
+            System.out.println("✅ Sucesso! Escala criada com ID: " + escalaCriada.getIdEscala());
+
+            // 2. Teste do Trigger: tentar escalar o MESMO residente no MESMO dia/turno em OUTRA unidade (ex: Unidade 2)
+            System.out.println("\n2. Tentando conflito de escala (mesmo dia/turno, unidade diferente)...");
+            escalaService.alocarResidenteEmEscala(6, 1, 2, "Sábado", "Noite");
+            System.out.println("❌ ERRO: A trigger deveria ter impedido!");
+
+        } catch (Exception e) {
+            System.out.println("✅ Trigger funcionou perfeitamente!");
+            System.out.println("Mensagem capturada: " + e.getMessage());
+        }
+
+        System.out.println("------------------------------------------------\n");
     }
 }

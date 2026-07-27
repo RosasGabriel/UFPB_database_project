@@ -166,3 +166,39 @@ BEGIN
     END IF;
 END;
 $$;
+
+-- 3.2 Procedure: Registro completo de atendimento com transação e JSON
+CREATE OR REPLACE PROCEDURE sp_registrar_atendimento_completo(
+    p_id_paciente INT,
+    p_id_residente INT,
+    p_id_preceptor INT,
+    p_id_unidade INT,
+    p_duracao_minutos INT,
+    p_procedimentos JSONB -- Exemplo: '[{"id_procedimento": 1, "tempo_real": 30}, {"id_procedimento": 2, "tempo_real": 45}]'
+)
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_id_atendimento INT;
+    v_proc JSONB;
+BEGIN
+    -- 1. Insere o atendimento principal
+    INSERT INTO ATENDIMENTO (id_paciente, id_residente, id_preceptor, id_unidade, duracao_minutos, data_hora)
+    VALUES (p_id_paciente, p_id_residente, p_id_preceptor, p_id_unidade, p_duracao_minutos, CURRENT_TIMESTAMP)
+    RETURNING id_atendimento INTO v_id_atendimento;
+
+    -- 2. Itera sobre a lista de procedimentos em JSON e insere em PROCEDIMENTO_REALIZADO
+    IF p_procedimentos IS NOT NULL AND jsonb_array_length(p_procedimentos) > 0 THEN
+        FOR v_proc IN SELECT * FROM jsonb_array_elements(p_procedimentos)
+        LOOP
+            INSERT INTO PROCEDIMENTO_REALIZADO (id_atendimento, id_procedimento, tempo_real_minutos)
+            VALUES (
+                v_id_atendimento, 
+                (v_proc->>'id_procedimento')::INT, 
+                (v_proc->>'tempo_real')::INT
+            );
+        END LOOP;
+    END IF;
+
+    -- Qualquer erro durante a iteração faz o PL/pgSQL reverter (rollback) toda a bloco transacional
+END;
+$$;

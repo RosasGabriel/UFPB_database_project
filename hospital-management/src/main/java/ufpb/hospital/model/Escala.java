@@ -20,7 +20,7 @@ public class Escala {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_escala")
-    private Long idEscala;
+    private Integer idEscala;
 
     @ManyToOne
     @JoinColumn(name = "id_unidade", nullable = false)
