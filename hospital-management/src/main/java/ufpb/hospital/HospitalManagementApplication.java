@@ -29,12 +29,12 @@ public class HospitalManagementApplication implements CommandLineRunner {
 
             // IDs existentes no seu banco
             atendimentoService.registrarAtendimentoCompleto(
-                    1,                  // idPaciente
-                    6,                  // idResidente
-                    11,                 // idPreceptor
-                    1,                  // idUnidade
-                    65,                 // duracaoMinutos
-                    jsonProcedimentos   // <-- Usando a variável aqui
+                    1,          // idPaciente
+                    6,         // idResidente
+                    11,        // idPreceptor
+                    1,           // idUnidade
+                    65,     // duracaoMinutos
+                    jsonProcedimentos
             );
 
             System.out.println("✅ Atendimento e procedimentos registrados com sucesso via Stored Procedure!");
