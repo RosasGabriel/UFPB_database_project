@@ -14,7 +14,7 @@ public class UnidadeSaude {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_unidade")
-    private Long idUnidade;
+    private Integer idUnidade;
 
     @Column(name = "nome", nullable = false, unique = true, length = 100)
     private String nome;
@@ -26,8 +26,8 @@ public class UnidadeSaude {
     private Integer capacidadeLeitos;
 
     // Getters e Setters
-    public Long getIdUnidade() { return idUnidade; }
-    public void setIdUnidade(Long idUnidade) { this.idUnidade = idUnidade; }
+    public Integer getIdUnidade() { return idUnidade; }
+    public void setIdUnidade(Integer idUnidade) { this.idUnidade = idUnidade; }
 
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }

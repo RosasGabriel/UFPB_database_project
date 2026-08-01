@@ -19,7 +19,7 @@ public class Pessoa {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_pessoa")
-    private Long idPessoa;
+    private Integer idPessoa;
 
     @Column(name = "nome", nullable = false, length = 100)
     private String nome;
@@ -37,8 +37,8 @@ public class Pessoa {
     private String telefone;
 
     // Getters e Setters
-    public Long getIdPessoa() { return idPessoa; }
-    public void setIdPessoa(Long idPessoa) { this.idPessoa = idPessoa; }
+    public Integer getIdPessoa() { return idPessoa; }
+    public void setIdPessoa(Integer idPessoa) { this.idPessoa = idPessoa; }
 
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
