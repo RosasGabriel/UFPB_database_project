@@ -38,4 +38,10 @@ public class AtendimentoService {
                 .setParameter("p_procedimentos", procedimentosJson)
                 .executeUpdate();
     }
+
+    @Transactional
+    public void calcularTempoMedioEspera() {
+        String sql = "CALL public.sp_calcular_tempo_medio_espera()";
+        entityManager.createNativeQuery(sql).executeUpdate();
+    }
 }
