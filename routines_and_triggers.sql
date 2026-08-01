@@ -168,13 +168,15 @@ END;
 $$;
 
 -- 3.2 Procedure: Registro completo de atendimento com transação e JSON
+DROP PROCEDURE IF EXISTS sp_registrar_atendimento_completo;
+
 CREATE OR REPLACE PROCEDURE sp_registrar_atendimento_completo(
     p_id_paciente INT,
     p_id_residente INT,
     p_id_preceptor INT,
     p_id_unidade INT,
     p_duracao_minutos INT,
-    p_procedimentos JSONB -- Exemplo: '[{"id_procedimento": 1, "tempo_real": 30}, {"id_procedimento": 2, "tempo_real": 45}]'
+    p_procedimentos JSONB
 )
 LANGUAGE plpgsql AS $$
 DECLARE
@@ -186,7 +188,7 @@ BEGIN
     VALUES (p_id_paciente, p_id_residente, p_id_preceptor, p_id_unidade, p_duracao_minutos, CURRENT_TIMESTAMP)
     RETURNING id_atendimento INTO v_id_atendimento;
 
-    -- 2. Itera sobre a lista de procedimentos em JSON e insere em PROCEDIMENTO_REALIZADO
+    -- 2. Itera sobre os procedimentos informados em formato JSON
     IF p_procedimentos IS NOT NULL AND jsonb_array_length(p_procedimentos) > 0 THEN
         FOR v_proc IN SELECT * FROM jsonb_array_elements(p_procedimentos)
         LOOP
@@ -198,7 +200,29 @@ BEGIN
             );
         END LOOP;
     END IF;
+END;
+$$;
 
-    -- Qualquer erro durante a iteração faz o PL/pgSQL reverter (rollback) toda a bloco transacional
+-- 3.3 Procedure: Calcular Tempo Médio de Espera por Unidade
+CREATE OR REPLACE PROCEDURE sp_calcular_tempo_medio_espera()
+LANGUAGE plpgsql AS $$
+DECLARE
+    r RECORD;
+BEGIN
+    RAISE NOTICE '=== TEMPO MÉDIO DE ESPERA/EXECUÇÃO POR UNIDADE ===';
+    FOR r IN (
+        SELECT 
+            u.nome AS unidade,
+            COALESCE(ROUND(AVG(pr.tempo_real_minutos), 2), 0) AS tempo_medio_minutos,
+            COUNT(DISTINCT a.id_atendimento) AS total_atendimentos
+        FROM UNIDADE u
+        LEFT JOIN ATENDIMENTO a ON u.id_unidade = a.id_unidade
+        LEFT JOIN PROCEDIMENTO_REALIZADO pr ON a.id_atendimento = pr.id_atendimento
+        GROUP BY u.id_unidade, u.nome
+        ORDER BY tempo_medio_minutos DESC
+    ) LOOP
+        RAISE NOTICE 'Unidade: % | Atendimentos: % | Tempo Médio: % min', 
+                     RPAD(r.unidade, 25, ' '), r.total_atendimentos, r.tempo_medio_minutos;
+    END LOOP;
 END;
 $$;
