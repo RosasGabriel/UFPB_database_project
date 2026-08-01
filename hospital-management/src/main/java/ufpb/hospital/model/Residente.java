@@ -12,7 +12,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "residente")
 @PrimaryKeyJoinColumn(name = "id_pessoa")
-public class Residente extends Pessoa {
+public class Residente extends Profissional { 
 
     @Column(name = "ano_residencia", nullable = false)
     private Integer anoResidencia;

@@ -12,7 +12,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "preceptor")
 @PrimaryKeyJoinColumn(name = "id_pessoa")
-public class Preceptor extends Pessoa {
+public class Preceptor extends Profissional {
 
     @Column(name = "titulacao", nullable = false, length = 50)
     private String titulacao;
