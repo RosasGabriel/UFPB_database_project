@@ -203,26 +203,13 @@ BEGIN
 END;
 $$;
 
--- 3.3 Procedure: Calcular Tempo Médio de Espera por Unidade
-CREATE OR REPLACE PROCEDURE sp_calcular_tempo_medio_espera()
+-- 3.3 Procedure: Calcular Tempo Médio de Espera Geral (ou por unidade, ajustado para retornar Double)
+CREATE OR REPLACE PROCEDURE sp_calcular_tempo_medio_espera(OUT p_tempo_medio DOUBLE PRECISION)
 LANGUAGE plpgsql AS $$
-DECLARE
-    r RECORD;
 BEGIN
-    RAISE NOTICE '=== TEMPO MÉDIO DE ESPERA/EXECUÇÃO POR UNIDADE ===';
-    FOR r IN (
-        SELECT 
-            u.nome AS unidade,
-            COALESCE(ROUND(AVG(pr.tempo_real_minutos), 2), 0) AS tempo_medio_minutos,
-            COUNT(DISTINCT a.id_atendimento) AS total_atendimentos
-        FROM UNIDADE u
-        LEFT JOIN ATENDIMENTO a ON u.id_unidade = a.id_unidade
-        LEFT JOIN PROCEDIMENTO_REALIZADO pr ON a.id_atendimento = pr.id_atendimento
-        GROUP BY u.id_unidade, u.nome
-        ORDER BY tempo_medio_minutos DESC
-    ) LOOP
-        RAISE NOTICE 'Unidade: % | Atendimentos: % | Tempo Médio: % min', 
-                     RPAD(r.unidade, 25, ' '), r.total_atendimentos, r.tempo_medio_minutos;
-    END LOOP;
+    -- Calcula a média geral da duração dos atendimentos para injetar no parâmetro de saída
+    SELECT COALESCE(AVG(duracao_minutos), 0.0) 
+    INTO p_tempo_medio 
+    FROM ATENDIMENTO;
 END;
 $$;
