@@ -1,11 +1,26 @@
 package ufpb.hospital;
 
+import java.util.List;
 import java.util.Scanner;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import ufpb.hospital.model.Atendimento;
+import ufpb.hospital.model.Escala;
+import ufpb.hospital.model.Paciente;
+import ufpb.hospital.model.Preceptor;
+import ufpb.hospital.model.Procedimento;
+import ufpb.hospital.model.Residente;
+import ufpb.hospital.model.UnidadeSaude;
+import ufpb.hospital.repository.AtendimentoRepository;
+import ufpb.hospital.repository.EscalaRepository;
+import ufpb.hospital.repository.PacienteRepository;
+import ufpb.hospital.repository.PreceptorRepository;
+import ufpb.hospital.repository.ProcedimentoRepository;
+import ufpb.hospital.repository.ResidenteRepository;
+import ufpb.hospital.repository.UnidadeSaudeRepository;
 import ufpb.hospital.service.AtendimentoService;
 import ufpb.hospital.service.EscalaService;
 
@@ -14,10 +29,37 @@ public class HospitalManagementApplication implements CommandLineRunner {
 
     private final AtendimentoService atendimentoService;
     private final EscalaService escalaService;
+    
+    // Repositórios para o CRUD básico
+    private final PacienteRepository pacienteRepository;
+    private final PreceptorRepository preceptorRepository;
+    private final ResidenteRepository residenteRepository;
+    private final UnidadeSaudeRepository unidadeSaudeRepository;
+    private final AtendimentoRepository atendimentoRepository;
+    
+    // Adicionando os repositórios que faltavam
+    private final ProcedimentoRepository procedimentoRepository;
+    private final EscalaRepository escalaRepository;
 
-    public HospitalManagementApplication(AtendimentoService atendimentoService, EscalaService escalaService) {
+    // Atualizando o construtor para injetar todos os repositórios
+    public HospitalManagementApplication(AtendimentoService atendimentoService, 
+                                         EscalaService escalaService,
+                                         PacienteRepository pacienteRepository,
+                                         PreceptorRepository preceptorRepository,
+                                         ResidenteRepository residenteRepository,
+                                         UnidadeSaudeRepository unidadeSaudeRepository,
+                                         AtendimentoRepository atendimentoRepository,
+                                         ProcedimentoRepository procedimentoRepository,
+                                         EscalaRepository escalaRepository) {
         this.atendimentoService = atendimentoService;
         this.escalaService = escalaService;
+        this.pacienteRepository = pacienteRepository;
+        this.preceptorRepository = preceptorRepository;
+        this.residenteRepository = residenteRepository;
+        this.unidadeSaudeRepository = unidadeSaudeRepository;
+        this.atendimentoRepository = atendimentoRepository;
+        this.procedimentoRepository = procedimentoRepository;
+        this.escalaRepository = escalaRepository;
     }
 
     public static void main(String[] args) {
@@ -67,7 +109,7 @@ public class HospitalManagementApplication implements CommandLineRunner {
         System.out.println("0. Sair");
     }
 
-   // =========================================================================
+    // =========================================================================
     // SUBMENU GENÉRICO DE CRUD PARA ENTIDADES
     // =========================================================================
 
@@ -96,7 +138,7 @@ public class HospitalManagementApplication implements CommandLineRunner {
         }
     }
 
-    // --- MÉTODOS DE AÇÃO DO CRUD ---
+    // --- MÉTODOS DE AÇÃO DO CRUD CONECTADOS AOS REPOSITÓRIOS ---
 
     private void executarCriacao(Scanner scanner, String entidade) {
         System.out.println("\n=== [CRIAR] Novo Registro em " + entidade + " ===");
@@ -104,6 +146,7 @@ public class HospitalManagementApplication implements CommandLineRunner {
             System.out.print("Digite o nome/identificador: ");
             String nome = scanner.nextLine();
             
+            // Aqui podemos expandir para chamadas de save() específicas
             System.out.println("✅ " + entidade + " '" + nome + "' cadastrado(a) com sucesso!");
         } catch (Exception e) {
             System.out.println("❌ Erro ao cadastrar " + entidade + ": " + e.getMessage());
@@ -117,7 +160,17 @@ public class HospitalManagementApplication implements CommandLineRunner {
             int id = Integer.parseInt(scanner.nextLine());
 
             System.out.println("🔍 Buscando " + entidade + " com ID " + id + "...");
-            System.out.println("✅ Registro encontrado: ID=" + id + " | Status: Ativo");
+            
+            switch (entidade) {
+                case "PACIENTE" -> pacienteRepository.findById(id).ifPresentOrElse(
+                        p -> System.out.println("✅ Encontrado: ID=" + p.getIdPessoa() + " | Nome=" + p.getNome() + " | Convênio=" + p.getNumConvenio()),
+                        () -> System.out.println("⚠️ Paciente não encontrado com ID: " + id));
+                case "PRECEPTOR" -> preceptorRepository.findById(id).ifPresentOrElse(
+                        pr -> System.out.println("✅ Encontrado: ID=" + pr.getIdPessoa() + " | Nome=" + pr.getNome() + " | CRM=" + pr.getCrm()),
+                        () -> System.out.println("⚠️ Preceptor não encontrado com ID: " + id));
+                default -> System.out.println("✅ Registro simulado para " + entidade);
+            }
+
         } catch (NumberFormatException e) {
             System.out.println("❌ Erro: O ID precisa ser um número inteiro.");
         } catch (Exception e) {
@@ -147,6 +200,12 @@ public class HospitalManagementApplication implements CommandLineRunner {
             System.out.print("Digite o ID a ser removido: ");
             int id = Integer.parseInt(scanner.nextLine());
 
+            switch (entidade) {
+                case "PACIENTE" -> pacienteRepository.deleteById(id);
+                case "PRECEPTOR" -> preceptorRepository.deleteById(id);
+                default -> {}
+            }
+
             System.out.println("✅ " + entidade + " (ID " + id + ") removido(a) com sucesso!");
         } catch (NumberFormatException e) {
             System.out.println("❌ Erro: O ID precisa ser um número inteiro.");
@@ -155,22 +214,156 @@ public class HospitalManagementApplication implements CommandLineRunner {
         }
     }
 
-    private void executarListagemTodas(String entidade) {
+   private void executarListagemTodas(String entidade) {
         System.out.println("\n=== [LISTAR] Todos os Registros de " + entidade + " ===");
         try {
             System.out.println("🔍 Consultando tabela no banco de dados...");
             
-            // Aqui você chamará o metodo `findAll()` do serviço/repositório da respectiva entidade:
-            // Exemplo: List<Paciente> lista = pacienteService.listarTodos();
-            
-            System.out.println("----------------------------------------------------------------");
-            System.out.println("ID | NOME / IDENTIFICADOR               | STATUS");
-            System.out.println("----------------------------------------------------------------");
-            System.out.println(" 1 | Registro Exemplo 01               | Ativo");
-            System.out.println(" 2 | Registro Exemplo 02               | Ativo");
-            System.out.println(" 3 | Registro Exemplo 03               | Inativo");
-            System.out.println("----------------------------------------------------------------");
-            System.out.println("✅ Total de registros encontrados: 3");
+            switch (entidade) {
+                case "PACIENTE" -> {
+                    List<Paciente> lista = pacienteRepository.findAll();
+                    if (lista.isEmpty()) {
+                        System.out.println("⚠️ Nenhum paciente cadastrado.");
+                        return;
+                    }
+                    System.out.println("----------------------------------------------------------------------------------");
+                    System.out.printf("%-4s | %-30s | %-15s | %-10s\n", "ID", "NOME", "CONVÊNIO", "SANGUE");
+                    System.out.println("----------------------------------------------------------------------------------");
+                    for (Paciente p : lista) {
+                        System.out.printf("%-4d | %-30s | %-15s | %-10s\n",
+                                p.getIdPessoa(),
+                                p.getNome(),
+                                p.getNumConvenio() != null ? p.getNumConvenio() : "N/I",
+                                p.getGrupoSanguineo() != null ? p.getGrupoSanguineo() : "N/I");
+                    }
+                    System.out.println("----------------------------------------------------------------------------------");
+                    System.out.println("✅ Total de registros encontrados: " + lista.size());
+                }
+
+                case "PRECEPTOR" -> {
+                    List<Preceptor> lista = preceptorRepository.findAll();
+                    if (lista.isEmpty()) {
+                        System.out.println("⚠️ Nenhum preceptor cadastrado.");
+                        return;
+                    }
+                    System.out.println("----------------------------------------------------------------------------------");
+                    System.out.printf("%-4s | %-30s | %-15s | %-15s\n", "ID", "NOME", "CRM", "TITULAÇÃO");
+                    System.out.println("----------------------------------------------------------------------------------");
+                    for (Preceptor pr : lista) {
+                        System.out.printf("%-4d | %-30s | %-15s | %-15s\n",
+                                pr.getIdPessoa(),
+                                pr.getNome(),
+                                pr.getCrm(),
+                                pr.getTitulacao());
+                    }
+                    System.out.println("----------------------------------------------------------------------------------");
+                    System.out.println("✅ Total de registros encontrados: " + lista.size());
+                }
+
+                case "RESIDENTE" -> {
+                    List<Residente> lista = residenteRepository.findAll();
+                    if (lista.isEmpty()) {
+                        System.out.println("⚠️ Nenhum residente cadastrado.");
+                        return;
+                    }
+                    System.out.println("----------------------------------------------------------------------------------");
+                    System.out.printf("%-4s | %-30s | %-15s | %-10s\n", "ID", "NOME", "CRM", "ANO RES.");
+                    System.out.println("----------------------------------------------------------------------------------");
+                    for (Residente r : lista) {
+                        System.out.printf("%-4d | %-30s | %-15s | R%-9d\n",
+                                r.getIdPessoa(),
+                                r.getNome(),
+                                r.getCrm(),
+                                r.getAnoResidencia());
+                    }
+                    System.out.println("----------------------------------------------------------------------------------");
+                    System.out.println("✅ Total de registros encontrados: " + lista.size());
+                }
+
+                case "UNIDADE DE SAÚDE", "UNIDADE" -> {
+                    List<UnidadeSaude> lista = unidadeSaudeRepository.findAll();
+                    if (lista.isEmpty()) {
+                        System.out.println("⚠️ Nenhuma unidade de saúde cadastrada.");
+                        return;
+                    }
+                    System.out.println("----------------------------------------------------------------------------------");
+                    System.out.printf("%-4s | %-30s | %-20s | %-10s\n", "ID", "NOME", "TIPO", "LEITOS");
+                    System.out.println("----------------------------------------------------------------------------------");
+                    for (UnidadeSaude u : lista) {
+                        System.out.printf("%-4d | %-30s | %-20s | %-10d\n",
+                                u.getIdUnidade(),
+                                u.getNome(),
+                                u.getTipo(),
+                                u.getCapacidadeLeitos());
+                    }
+                    System.out.println("----------------------------------------------------------------------------------");
+                    System.out.println("✅ Total de registros encontrados: " + lista.size());
+                }
+
+                case "PROCEDIMENTO" -> {
+                    List<Procedimento> lista = procedimentoRepository.findAll();
+                    if (lista.isEmpty()) {
+                        System.out.println("⚠️ Nenhum procedimento cadastrado.");
+                        return;
+                    }
+                    System.out.println("----------------------------------------------------------------------------------");
+                    System.out.printf("%-4s | %-35s | %-15s\n", "ID", "NOME DO PROCEDIMENTO", "TEMPO MÉDIO (MIN)");
+                    System.out.println("----------------------------------------------------------------------------------");
+                    for (Procedimento proc : lista) {
+                        System.out.printf("%-4d | %-35s | %-15d min\n",
+                                proc.getIdProcedimento(),
+                                proc.getNome(),
+                                proc.getTempoMedioExecucao());
+                    }
+                    System.out.println("----------------------------------------------------------------------------------");
+                    System.out.println("✅ Total de registros encontrados: " + lista.size());
+                }
+
+                case "ATENDIMENTO" -> {
+                    List<Atendimento> lista = atendimentoRepository.findAll();
+                    if (lista.isEmpty()) {
+                        System.out.println("⚠️ Nenhum atendimento cadastrado.");
+                        return;
+                    }
+                    System.out.println("--------------------------------------------------------------------------------------------------");
+                    System.out.printf("%-4s | %-20s | %-20s | %-20s | %-10s\n", "ID", "PACIENTE", "RESIDENTE", "UNIDADE", "DURAÇÃO");
+                    System.out.println("--------------------------------------------------------------------------------------------------");
+                    for (Atendimento a : lista) {
+                        System.out.printf("%-4d | %-20s | %-20s | %-20s | %-10d min\n",
+                                a.getIdAtendimento(),
+                                a.getPaciente() != null ? a.getPaciente().getNome() : "N/I",
+                                a.getResidente() != null ? a.getResidente().getNome() : "N/I",
+                                a.getUnidadeSaude() != null ? a.getUnidadeSaude().getNome() : "N/I",
+                                a.getDuracaoMinutos());
+                    }
+                    System.out.println("--------------------------------------------------------------------------------------------------");
+                    System.out.println("✅ Total de registros encontrados: " + lista.size());
+                }
+
+                case "ESCALA" -> {
+                    List<Escala> lista = escalaRepository.findAll();
+                    if (lista.isEmpty()) {
+                        System.out.println("⚠️ Nenhuma escala cadastrada.");
+                        return;
+                    }
+                    System.out.println("--------------------------------------------------------------------------------------------------");
+                    System.out.printf("%-4s | %-12s | %-10s | %-20s | %-20s\n", "ID", "DIA SEMANA", "TURNO", "RESIDENTE", "PRECEPTOR");
+                    System.out.println("--------------------------------------------------------------------------------------------------");
+                    for (Escala e : lista) {
+                        System.out.printf("%-4d | %-12s | %-10s | %-20s | %-20s\n",
+                                e.getIdEscala(),
+                                e.getDiaSemana(),
+                                e.getTurno(),
+                                e.getResidente() != null ? e.getResidente().getNome() : "N/I",
+                                e.getPreceptor() != null ? e.getPreceptor().getNome() : "N/I");
+                    }
+                    System.out.println("--------------------------------------------------------------------------------------------------");
+                    System.out.println("✅ Total de registros encontrados: " + lista.size());
+                }
+
+                default -> System.out.println("⚠️ Listagem para '" + entidade + "' não configurada.");
+            }
+
         } catch (Exception e) {
             System.out.println("❌ Erro ao listar registros de " + entidade + ": " + e.getMessage());
         }
@@ -234,8 +427,18 @@ public class HospitalManagementApplication implements CommandLineRunner {
     private void calcularTempoMedio() {
         System.out.println("\n=== [PROCEDURE] Calcular Tempo Médio de Espera ===");
         try {
-            atendimentoService.calcularTempoMedioEspera();
-            System.out.println("✅ Stored Procedure executada com sucesso!");
+            System.out.println("⏳ Executando cálculo no banco de dados...");
+            
+            // Chama o serviço e guarda o retorno
+            Double tempoMedio = atendimentoService.calcularTempoMedioEspera();
+            
+            if (tempoMedio != null) {
+                System.out.printf("✅ Stored Procedure executada com sucesso!\n");
+                System.out.printf("⏱️  O tempo médio atual de espera é de: %.1f minutos.\n", tempoMedio);
+            } else {
+                System.out.println("⚠️ Stored Procedure executada, mas não há dados suficientes para calcular a média (Retorno nulo).");
+            }
+
         } catch (Exception e) {
             System.out.println("❌ Erro ao calcular tempo médio: " + e.getMessage());
         }

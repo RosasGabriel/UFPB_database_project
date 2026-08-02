@@ -5,12 +5,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import ufpb.hospital.repository.AtendimentoRepository;
 
 @Service
 public class AtendimentoService {
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    // 1. Declarando o repositório
+    private final AtendimentoRepository atendimentoRepository;
+
+    // 2. Injetando o repositório via construtor
+    public AtendimentoService(AtendimentoRepository atendimentoRepository) {
+        this.atendimentoRepository = atendimentoRepository;
+    }
 
     @Transactional
     public void registrarAtendimentoCompleto(
@@ -40,8 +49,7 @@ public class AtendimentoService {
     }
 
     @Transactional
-    public void calcularTempoMedioEspera() {
-        String sql = "CALL public.sp_calcular_tempo_medio_espera()";
-        entityManager.createNativeQuery(sql).executeUpdate();
+    public Double calcularTempoMedioEspera() {
+        return atendimentoRepository.calcularTempoMedioEspera();
     }
 }
