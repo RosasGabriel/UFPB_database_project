@@ -88,9 +88,12 @@ public class HospitalManagementApplication implements CommandLineRunner {
                 case "4" -> menuGerenciamentoEntidade(scanner, "UNIDADE DE SAÚDE");
                 case "5" -> menuGerenciamentoEntidade(scanner, "ATENDIMENTO");
                 case "6" -> menuEtapa2ProceduresETriggers(scanner);
+                case "7" -> menuConsultasAvancadasORM(scanner);
+                case "8" -> menuViewsAnaliticas(scanner);
                 case "0" -> {
                     executando = false;
                     System.out.println("Encerrando o sistema... Até mais!");
+                    System.exit(0);
                 }
                 default -> System.out.println("❌ Opção inválida! Tente novamente.");
             }
@@ -106,6 +109,8 @@ public class HospitalManagementApplication implements CommandLineRunner {
         System.out.println("4. [ETAPA 1] Gerenciar Unidades de Saúde");
         System.out.println("5. [ETAPA 1] Gerenciar Atendimentos (CRUD Básico)");
         System.out.println("6. [ETAPA 2] Regras Avançadas (Procedures, JSONB e Triggers)");
+        System.out.println("7. [ETAPA 2] Consultas Avançadas com ORM");
+        System.out.println("8. [ETAPA 2] Consultar Views Analíticas (PostgreSQL)");
         System.out.println("0. Sair");
     }
 
@@ -493,6 +498,140 @@ public class HospitalManagementApplication implements CommandLineRunner {
 
         } catch (Exception e) {
             System.out.println("⚠️ Validação disparada com sucesso! Mensagem: " + e.getMessage());
+        }
+    }
+
+    private void menuConsultasAvancadasORM(Scanner scanner) {
+        boolean voltar = false;
+        while (!voltar) {
+            System.out.println("\n--- [ETAPA 2] CONSULTAS AVANÇADAS COM ORM ---");
+            System.out.println("1. Listar Preceptores de Pacientes Flamenguistas");
+            System.out.println("2. Exibir o Último Atendimento de Cada Paciente");
+            System.out.println("3. Calcular Percentual de Procedimentos de Alto Risco por Residente");
+            System.out.println("0. Voltar ao Menu Principal");
+            System.out.print("Escolha uma opção: ");
+
+            String opcao = scanner.nextLine().trim();
+            switch (opcao) {
+                case "1" -> {
+                    System.out.println("\n=== Preceptores que atenderam pacientes flamenguistas ===");
+                    List<Preceptor> lista = atendimentoRepository.findPreceptoresDePacientesFlamenguistas();
+                    if (lista.isEmpty()) {
+                        System.out.println("⚠️ Nenhum registro encontrado.");
+                    } else {
+                        lista.forEach(p -> System.out.println("- " + p.getNome() + " (CRM: " + p.getCrm() + ")"));
+                    }
+                }
+                case "2" -> {
+                    System.out.println("\n=== Último atendimento de cada paciente ===");
+                    List<Atendimento> lista = atendimentoRepository.findUltimoAtendimentoPorPaciente();
+                    if (lista.isEmpty()) {
+                        System.out.println("⚠️ Nenhum atendimento encontrado.");
+                    } else {
+                        lista.forEach(a -> System.out.printf("Paciente: %s | Data: %s | Residente: %s\n",
+                                a.getPaciente().getNome(),
+                                a.getDataHora(),
+                                a.getResidente().getNome()));
+                    }
+                }
+                case "3" -> {
+                    System.out.println("\n=== Percentual de procedimentos de alto risco por residente ===");
+                    List<Object[]> resultados = atendimentoRepository.calcularPercentualProcedimentosAltoRiscoPorResidente();
+                    if (resultados.isEmpty()) {
+                        System.out.println("⚠️ Nenhum dado estatístico disponível.");
+                    } else {
+                        resultados.forEach(res -> System.out.printf("Residente: %s | Alto Risco: %.2f%%\n",
+                                res[0], res[1]));
+                    }
+                }
+                case "0" -> voltar = true;
+                default -> System.out.println("❌ Opção inválida!");
+            }
+        }
+    }
+
+    // =========================================================================
+    // SUBMENU ETAPA 2 - VIEWS ANALÍTICAS (POSTGRESQL)
+    // =========================================================================
+
+    private void menuViewsAnaliticas(Scanner scanner) {
+        boolean voltar = false;
+        while (!voltar) {
+            System.out.println("\n--- [ETAPA 2] VIEWS ANALÍTICAS (POSTGRESQL) ---");
+            System.out.println("1. [View] Pacientes Internados (vw_pacientes_internados)");
+            System.out.println("2. [View] Residentes sem Supervisor Doutor (vw_residentes_sem_supervisor)");
+            System.out.println("3. [View] Estatísticas Mensais de Atendimentos (vw_estatisticas_atendimentos_mensal)");
+            System.out.println("0. Voltar ao Menu Principal");
+            System.out.print("Escolha uma opção: ");
+
+            String opcao = scanner.nextLine().trim();
+            switch (opcao) {
+                case "1" -> {
+                    System.out.println("\n=== [VIEW] Pacientes Internados ===");
+                    try {
+                        List<Object[]> lista = atendimentoRepository.consultarViewPacientesInternados();
+                        if (lista.isEmpty()) {
+                            System.out.println("⚠️ Nenhum paciente internado encontrado.");
+                        } else {
+                            System.out.println("--------------------------------------------------------------------------------------------------");
+                            System.out.printf("%-4s | %-30s | %-15s | %-20s | %-20s\n", "ID", "PACIENTE", "CONVÊNIO", "DATA INTERNAÇÃO", "UNIDADE");
+                            System.out.println("--------------------------------------------------------------------------------------------------");
+                            for (Object[] row : lista) {
+                                System.out.printf("%-4s | %-30s | %-15s | %-20s | %-20s\n",
+                                        row[0], row[1],
+                                        row[2] != null ? row[2] : "SUS",
+                                        row[4] != null ? row[4].toString() : "N/I",
+                                        row[5]);
+                            }
+                            System.out.println("--------------------------------------------------------------------------------------------------");
+                        }
+                    } catch (Exception e) {
+                        System.out.println("❌ Erro ao consultar view: " + e.getMessage());
+                    }
+                }
+                case "2" -> {
+                    System.out.println("\n=== [VIEW] Residentes Supervisionados por Preceptores sem Doutorado ===");
+                    try {
+                        List<Object[]> lista = atendimentoRepository.consultarViewResidentesSemSupervisor();
+                        if (lista.isEmpty()) {
+                            System.out.println("⚠️ Nenhum registro encontrado.");
+                        } else {
+                            System.out.println("--------------------------------------------------------------------------------------------------");
+                            System.out.printf("%-25s | %-10s | %-10s | %-20s | %-20s | %-15s\n", "RESIDENTE", "DIA", "TURNO", "UNIDADE", "PRECEPTOR", "TITULAÇÃO");
+                            System.out.println("--------------------------------------------------------------------------------------------------");
+                            for (Object[] row : lista) {
+                                System.out.printf("%-25s | %-10s | %-10s | %-20s | %-20s | %-15s\n",
+                                        row[0], row[1], row[2], row[3], row[4], row[5]);
+                            }
+                            System.out.println("--------------------------------------------------------------------------------------------------");
+                        }
+                    } catch (Exception e) {
+                        System.out.println("❌ Erro ao consultar view: " + e.getMessage());
+                    }
+                }
+                case "3" -> {
+                    System.out.println("\n=== [VIEW] Estatísticas Mensais por Unidade ===");
+                    try {
+                        List<Object[]> lista = atendimentoRepository.consultarViewEstatisticasMensais();
+                        if (lista.isEmpty()) {
+                            System.out.println("⚠️ Nenhuma estatística gerada no período.");
+                        } else {
+                            System.out.println("----------------------------------------------------------------------------------");
+                            System.out.printf("%-6s | %-6s | %-25s | %-12s | %-15s\n", "ANO", "MÊS", "UNIDADE", "TOTAL ATEND.", "MÉDIA DURAÇÃO");
+                            System.out.println("----------------------------------------------------------------------------------");
+                            for (Object[] row : lista) {
+                                System.out.printf("%-6s | %-6s | %-25s | %-12s | %-15s min\n",
+                                        row[0], row[1], row[2], row[3], row[4]);
+                            }
+                            System.out.println("----------------------------------------------------------------------------------");
+                        }
+                    } catch (Exception e) {
+                        System.out.println("❌ Erro ao consultar view: " + e.getMessage());
+                    }
+                }
+                case "0" -> voltar = true;
+                default -> System.out.println("❌ Opção inválida!");
+            }
         }
     }
 }
