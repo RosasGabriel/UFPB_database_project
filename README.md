@@ -1,84 +1,120 @@
-# Sistema de Gestão Hospitalar (UFPB) - Etapa 1
+# 🏥 Sistema de Gestão Hospitalar - Hospital Universitário Dra. Yuska Maritan Brito
 
-Este repositório contém a especificação e a implementação da primeira etapa do projeto de banco de dados para o Sistema de Gestão Hospitalar, disciplina de Banco de Dados da UFPB.
+Este repositório contém a especificação e a implementação completa (**Etapa 1** e **Etapa 2**) do sistema de gestão hospitalar para o Hospital Universitário Dra. Yuska Maritan Brito, desenvolvido para a disciplina de Banco de Dados da **Universidade Federal da Paraíba (UFPB)**.
 
-O projeto contempla o Modelo Conceitual (DER), o Modelo Relacional Normalizado e os scripts de automação física em SQL puro para o SGDB **PostgreSQL**.
+O projeto abrange desde a modelagem relacional avançada até a automação de regras de negócio via **Stored Procedures**, **Triggers**, **Views** no **PostgreSQL**, além da integração de uma aplicação CLI interativa em **Java 21 / Spring Boot** com **Spring Data JPA (Hibernate)**.
 
 ---
 
-## 🛠️ Guia de Instalação e Configuração do Ambiente
+## 📐 Estrutura e Modelagem do Banco de Dados
 
-Escolha a seção adequada para o seu sistema operacional para instalar o **PostgreSQL** e o **pgAdmin 4**.
+O modelo de dados contempla a gestão de **Pessoas** (com especialização/herança em **Pacientes** e **Profissionais**, estes divididos em **Preceptores** e **Residentes**), **Unidades de Saúde**, **Atendimentos**, **Procedimentos Realizados**, **Escalas de Plantão** e registros de **Auditoria**.
 
-### 🐧 Opção 1: Instalação no Linux (Linux Mint / Ubuntu / Debian-based)
+### 🧬 Diagrama e Documentação
+* **DER e Modelo Relacional:** Disponíveis no arquivo `docs/Modelo_Conceitual_e_Relacional.pdf` (com justificativas de cardinalidades e evidência da normalização em **3FN/BCNF**).
 
-No terminal do seu Linux, execute os passos abaixo:
+---
 
-**1.Atualizar os repositórios do sistema:**
-```bash
-sudo apt update && sudo apt upgrade -y
+## 🛠️ Tecnologias Utilizadas
+
+* **Linguagem & Framework:** Java 21 / Spring Boot 4.1.0
+* **ORM & Persistência:** Hibernate / Spring Data JPA
+* **Gerenciador de Dependências:** Maven
+* **Banco de Dados:** PostgreSQL 16.14
+* **Interface:** CLI Interativa (Terminal)
+
+---
+
+## 💻 Guia de Instalação e Configuração do Ambiente
+
+### 1. Pré-requisitos
+Certifique-se de ter instalado em sua máquina:
+* **JDK 21** ou superior
+* **Apache Maven 3.8+**
+* **PostgreSQL 16+**
+
+### 2. Configuração do PostgreSQL
+
+No terminal Linux/Windows, acesse o prompt do PostgreSQL e crie o banco de dados do projeto:
+
+```sql
+CREATE DATABASE postgres; -- Ou utilize o banco padrão 'postgres'
 ```
 
-**2.Instalar o servidor PostgreSQL e utilitários adicionais:**
-```bash
-sudo apt install postgresql postgresql-contrib -y
+Certifique-se de ajustar as credenciais de acesso no arquivo src/main/resources/application.properties se necessário:
+
+```
+spring.datasource.url=jdbc:postgresql://localhost:5432/postgres
+spring.datasource.username=postgres
+spring.datasource.password=sua_senha
+spring.jpa.hibernate.ddl-auto=create-drop
+spring.sql.init.mode=always
+```
+## 🚀 Como Executar o Projeto
+
+### 1. Clone o repositório:
+
+```
+git clone https://github.com/RosasGabriel/UFPB_database_project.git
+cd hospital-management
 ```
 
-**3.Verificar se o serviço está ativo e rodando:**
-```bash
-sudo systemctl status postgresql
+### 2. Compile e execute a aplicação usando Maven:
+
 ```
-(Pressione **q** para sair do status).
-
-**4.Definir/Resetar a senha do superusuário postgres no banco:**
-Por padrão, o Linux usa a autenticação do sistema (peer). Para liberar o acesso via senha no pgAdmin, acesse o terminal do banco:
-```bash
-sudo -u postgres psql
+mvn spring-boot:run
 ```
-Dentro do prompt do PostgreSQL (postgres=#), execute o comando de alteração de senha (substitua pela sua senha de preferência):
-```bash
-ALTER USER postgres WITH PASSWORD 'sua_senha_aqui';
-```
-Digite **\q** e pressione **Enter** para sair.
+O Spring Boot iniciará, aplicará os scripts DDL/DML automaticamente e abrirá a CLI Interativa no terminal.
 
-**4.Instalar o pgAdmin 4:**
-Siga o guia oficial para adicionar o repositório do pgAdmin (APT) e instale via:
-```bash
-sudo apt install pgadmin4 -y
-```
+## 📑 Funcionalidades Implementadas
+### Etapa 1: Fundamentos e Modelo Relacional
+* **CRUDs Completos:**
 
-### 🪟 Opção 2: Instalação no Windows
-**1.Download do Instalador:**
-Acesse a página oficial do PostgreSQL (https://www.postgresql.org/download/windows/) e baixe o instalador da versão mais recente (ex: 15 ou 16).
+Gestão de Pacientes, Preceptores, Residentes, Unidades e Atendimentos.
 
-**2.Execução do Assistente:**
+Listagem de atendimentos por paciente (ordenados por data).
 
-Dê um duplo clique no instalador .exe.
+Listagem e remoção condicional de procedimentos realizados (flag pode_remover).
 
-Avance pelas telas de diretório padrão.
+* **Consultas Analíticas:**
 
-Na tela de seleção de componentes, certifique-se de marcar: PostgreSQL Server, pgAdmin 4 e Command Line Tools.
+Ranking de residentes por volume de atendimentos.
 
-**3.Configuração de Senha:**
-Durante a instalação, o assistente solicitará uma senha para o usuário master postgres. Anote esta senha, pois ela será exigida para conectar o pgAdmin ao servidor local.
+Preceptores com mais de 5 supervisões mensais.
 
-**4.Porta Padrão:**
-Mantenha a porta padrão recomendada pelo instalador: 5432.
+Quantidade de plantões escalados por unidade/residente no mês corrente.
 
-**5.Finalização:**
-Conclua o assistente. O PostgreSQL passará a rodar automaticamente como um Serviço do Windows em segundo plano.
+Pacientes que nunca realizaram procedimentos de risco 'ALTO'.
 
-### 💻 Como Executar os Scripts no pgAdmin 4
-Com o ambiente instalado, siga a ordem estrita descrita abaixo para montar o banco de dados do hospital:
+### Etapa 2: Recursos Avançados e ORM
+**1. Stored Procedures**
 
-**1.Criação do Banco de Dados:**
-   Crie um banco de dados vazio chamado `SistemaGestaoHospitalar`.
+sp_registrar_atendimento_completo: Transação atômica que cadastra atendimento e lista de procedimentos via parâmetro JSON.
 
-**2.Criação das Tabelas:**
-   Execute o script `schemas.sql` para gerar toda a estrutura de tabelas, chaves primárias/estrangeiras e restrições.
+sp_calcular_tempo_medio_espera: Calcula a média de tempo até o início do primeiro procedimento por unidade.
 
-**3.Carga de Dados de Teste:**
-   Execute o script `seeds.sql` para povoar as tabelas com os registros de teste mínimos.
+sp_reajustar_escala: Remaneja escalas de residentes evitando sobreposições de horários.
 
-**4.Execução das Consultas e Relatórios:**
-   O arquivo `queries.sql` contém todos os testes de CRUD e consultas analíticas exigidos na especificação.
+**2. Triggers**
+
+trg_check_sobreposicao_escala: Impede alocação dupla do mesmo residente no mesmo dia/turno em unidades diferentes (BEFORE INSERT/UPDATE).
+
+trg_audita_atendimento: Grava logs de alterações na tabela AUDITORIA_ATENDIMENTO com snapshots JSONB dos dados antigos e novos (AFTER INSERT/UPDATE/DELETE).
+
+trg_atualiza_media_procedimentos: Atualiza a média de tempo de execução no cadastro principal do procedimento (AFTER INSERT).
+
+**3. Views Analíticas**
+
+vw_pacientes_internados: Pacientes atualmente internados sem data de saída.
+
+vw_residentes_sem_supervisor: Residentes em plantões supervisionados por preceptores sem doutorado.
+
+vw_estatisticas_atendimentos_mensal: Agregação mensal com total de atendimentos e médias.
+
+**4. Consultas Avançadas com ORM (Hibernate / JPQL)**
+
+Preceptores de Flamenguistas: Identifica preceptores que supervisionaram residentes ao atenderem pacientes torcedores do Flamengo (is_flamengo = TRUE).
+
+Último Atendimento: Exibe o último atendimento de cada paciente com os detalhes dos procedimentos realizados.
+
+Percentual de Alto Risco: Calcula a porcentagem de procedimentos executados com tempo médio superior a 60 minutos por residente.
