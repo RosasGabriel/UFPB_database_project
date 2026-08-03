@@ -19,7 +19,7 @@ INSERT INTO PESSOA (nome, CPF, data_nascimento, is_flamengo, telefone) VALUES
 ('Dr. Moacir Santos',      '34567890123', '1968-09-05', FALSE, '83977773333'),  -- Preceptor 3 (ID 13)
 ('Dra. Patricia Pillar',   '45678901234', '1980-03-18', TRUE, '83977774444'),   -- Preceptor 4 (ID 14)
 ('Dr. Reynaldo Gianec',    '56789012345', '1978-11-12', FALSE, '83977775555')   -- Preceptor 5 (ID 15)
-ON CONFLICT (CPF) DO NOTHING;
+ON CONFLICT (CPF) DO NOTHING^;
 
 
 -- 2. INSERÇÃO NA TABELA PACIENTE (Herança de PESSOA)
@@ -29,7 +29,7 @@ INSERT INTO PACIENTE (id_pessoa, num_convenio, alergias, grupo_sanguineo) VALUES
 (3, 'SULAMERICA-11', 'Penicilina', 'AB+'),
 (4, NULL, 'Lactose', 'B+'),
 (5, 'AMIL-77777', 'Nenhuma', 'O-')
-ON CONFLICT (id_pessoa) DO NOTHING;
+ON CONFLICT (id_pessoa) DO NOTHING^;
 
 
 -- 3. INSERÇÃO NA TABELA PROFISSIONAL (Herança de PESSOA - Intermediária)
@@ -46,7 +46,7 @@ INSERT INTO PROFISSIONAL (id_pessoa, CRM, data_admissao, especialidade) VALUES
 (13, 'CRM-PB-1003', '2008-11-01', 'Cardiologia'),
 (14, 'CRM-PB-1004', '2015-08-20', 'Ginecologia'),
 (15, 'CRM-PB-1005', '2014-04-01', 'Clínica Médica')
-ON CONFLICT (id_pessoa) DO NOTHING;
+ON CONFLICT (id_pessoa) DO NOTHING^;
 
 
 -- 4. INSERÇÃO NA TABELA PRECEPTOR (Herança de PROFISSIONAL)
@@ -56,7 +56,7 @@ INSERT INTO PRECEPTOR (id_pessoa, titulacao) VALUES
 (13, 'Doutorado'),
 (14, 'Mestrado'),
 (15, 'Especialização')
-ON CONFLICT (id_pessoa) DO NOTHING;
+ON CONFLICT (id_pessoa) DO NOTHING^;
 
 
 -- 5. INSERÇÃO NA TABELA RESIDENTE (Herança de PROFISSIONAL)
@@ -66,7 +66,7 @@ INSERT INTO RESIDENTE (id_pessoa, ano_residencia) VALUES
 (8,  1),
 (9,  2),
 (10, 2)
-ON CONFLICT (id_pessoa) DO NOTHING;
+ON CONFLICT (id_pessoa) DO NOTHING^;
 
 
 -- 6. INSERÇÃO NA TABELA UNIDADE
@@ -74,17 +74,18 @@ INSERT INTO UNIDADE (nome, tipo, capacidade_leitos) VALUES
 ('UTI Geral', 'Terapia Intensiva', 15),
 ('Emergência Adulto', 'Pronto Atendimento', 30),
 ('Enfermaria Pediátrica', 'Internação', 20)
-ON CONFLICT DO NOTHING;
+ON CONFLICT DO NOTHING^;
 
 
--- 7. INSERÇÃO NA TABELA PROCEDIMENTO
+-- 7. INSERÇÃO NA TABELA PROCEDIMENTO (Com inclusão de procedimentos de alto risco > 60 min)
 INSERT INTO PROCEDIMENTO (nome, tempo_medio_execucao) VALUES
-('Sutura Simples', 20),
-('Acesso Venoso Central', 40),
-('Intubação Orotraqueal', 15),
-('Curativo Complexo', 30),
-('Eletrocardiograma (ECG)', 10)
-ON CONFLICT DO NOTHING;
+('Sutura Simples', 20),                    -- ID 1 (Baixo risco)
+('Acesso Venoso Central', 40),             -- ID 2 (Baixo risco)
+('Intubação Orotraqueal', 15),             -- ID 3 (Baixo risco)
+('Cirurgia Cardíaca de Alta Complexidade', 180), -- ID 4 (ALTO RISCO)
+('Craniotomia Descompressiva', 240),       -- ID 5 (ALTO RISCO)
+('Derivação Ventriculoperitoneal', 120)    -- ID 6 (ALTO RISCO)
+ON CONFLICT DO NOTHING^;
 
 
 -- 8. INSERÇÃO NA TABELA ATENDIMENTO
@@ -119,42 +120,42 @@ INSERT INTO ATENDIMENTO (id_atendimento, data_hora, duracao_minutos, id_paciente
 (28, '2026-07-19 14:00:00', 90, 3, 9,  14, 2),
 (29, '2026-07-19 22:00:00', 40, 4, 10, 15, 2),
 (30, '2026-07-20 07:30:00', 30, 5, 6,  11, 3)
-ON CONFLICT (id_atendimento) DO NOTHING;
+ON CONFLICT (id_atendimento) DO NOTHING^;
 
 
--- 9. INSERÇÃO NA TABELA PROCEDIMENTO_REALIZADO
+-- 9. INSERÇÃO NA TABELA PROCEDIMENTO_REALIZADO (Distribuindo procedimentos de alto risco IDs 4, 5 e 6)
 INSERT INTO PROCEDIMENTO_REALIZADO (id_atendimento, id_procedimento, quantidade, tempo_real_minutos, observacao, pode_remover) VALUES
 (1,  1, 1, 25, 'Sutura simples no braço esquerdo da criança.', TRUE),
-(2,  5, 1, 10, 'Eletrocardiograma de rotina para queixa de palpitação.', TRUE),
+(2,  4, 1, 150, 'Cirurgia cardíaca de emergência realizada com sucesso.', FALSE),
 (3,  2, 2, 35, 'Dois acessos venosos periféricos estabelecidos sem intercorrências.', TRUE),
-(4,  3, 3, 20, 'Eletrocardiogramas seriados.', TRUE),
+(4,  5, 1, 210, 'Craniotomia descompressiva devido a trauma cranioencefálico.', FALSE),
 (5,  3, 2, 45, 'Acesso venoso central guiado por ultrassom.', FALSE),
-(6,  1, 1, 15, 'Sutura na face, paciente colaborativo.', TRUE),
+(6,  6, 1, 110, 'Implante de derivação ventriculoperitoneal.', FALSE),
 (7,  3, 1, 20, 'Intubação realizada sob supervisão direta.', FALSE),
-(8,  4, 1, 35, 'Curativo pós-cirúrgico de grande porte.', TRUE),
-(9,  5, 1, 15, 'ECG rápido para verificação.', TRUE),
-(10, 1, 1, 25, 'Sutura em região plantar.', TRUE),
+(8,  4, 1, 175, 'Revascularização miocárdica em caráter de urgência.', FALSE),
+(9,  1, 1, 15, 'Sutura rápida para ferimento superficial.', TRUE),
+(10, 5, 1, 220, 'Craniotomia de urgência.', FALSE),
 (11, 1, 1, 35, 'Sutura simples sob supervisão.', TRUE),
-(12, 5, 1, 12, 'ECG de controle.', TRUE),
+(12, 6, 1, 100, 'Revisão de derivação.', FALSE),
 (13, 2, 1, 40, 'Acesso venoso central.', TRUE),
-(14, 4, 1, 30, 'Curativo pós-cirúrgico.', TRUE),
+(14, 4, 1, 190, 'Procedimento cirúrgico cardíaco complexo.', FALSE),
 (15, 3, 1, 15, 'Intubação rápida de emergência.', FALSE),
 (16, 1, 2, 40, 'Duas suturas pequenas.', TRUE),
-(17, 5, 1, 10, 'ECG de rotina.', TRUE),
+(17, 5, 1, 230, 'Descompressão craniana.', FALSE),
 (18, 2, 1, 35, 'Acesso venoso estabelecido.', TRUE),
-(19, 4, 1, 25, 'Curativo simples.', TRUE),
+(19, 6, 1, 115, 'Inserção de cateter ventricular.', FALSE),
 (20, 3, 1, 18, 'Intubação em leito de UTI.', FALSE),
-(21, 5, 1, 11, 'ECG de controle.', TRUE),
+(21, 4, 1, 160, 'Cirurgia cardíaca eletiva de grande porte.', FALSE),
 (22, 1, 1, 20, 'Sutura em dedo da mão.', TRUE),
-(23, 4, 1, 35, 'Troca de curativo complexo.', TRUE),
+(23, 5, 1, 205, 'Cirurgia neurológica de emergência.', FALSE),
 (24, 2, 1, 45, 'Acesso central guiado.', TRUE),
-(25, 5, 1, 15, 'ECG para paciente cardiopata.', TRUE),
+(25, 6, 1, 125, 'Derivação ventriculoperitoneal.', FALSE),
 (26, 1, 1, 25, 'Sutura de ferimento cortante.', TRUE),
 (27, 3, 1, 14, 'Intubação sob supervisão.', FALSE),
-(28, 2, 1, 38, 'Acesso venoso difícil.', TRUE),
-(29, 4, 1, 30, 'Curativo padrão.', TRUE),
-(30, 5, 1, 10, 'ECG rápido.', TRUE)
-ON CONFLICT DO NOTHING;
+(28, 4, 1, 185, 'Cirurgia cardíaca prolongada.', FALSE),
+(29, 5, 1, 215, 'Craniotomia para drenagem.', FALSE),
+(30, 6, 1, 110, 'Derivação VP realizada com sucesso.', FALSE)
+ON CONFLICT DO NOTHING^;
 
 
 -- 10. INSERÇÃO NA TABELA ESCALA
@@ -162,11 +163,11 @@ INSERT INTO ESCALA (id_unidade, dia_semana, turno, id_residente, id_preceptor) V
 (2, 'Segunda', 'Manhã', 7, 12),
 (1, 'Quarta', 'Noite', 8, 13),
 (3, 'Sexta', 'Tarde', 6, 11)
-ON CONFLICT DO NOTHING;
+ON CONFLICT DO NOTHING^;
 
 
 -- =============================================================================
--- ADJUSTE DAS SEQUÊNCIAS DO POSTGRESQL (Para inserção manual no CLI não conflitar)
+-- AJUSTE DAS SEQUÊNCIAS DO POSTGRESQL (Para inserção manual no CLI não conflitar)
 -- =============================================================================
-SELECT setval('atendimento_id_atendimento_seq', COALESCE((SELECT MAX(id_atendimento) FROM ATENDIMENTO), 1));
-SELECT setval('pessoa_id_pessoa_seq', COALESCE((SELECT MAX(id_pessoa) FROM PESSOA), 1));
+SELECT setval('atendimento_id_atendimento_seq', COALESCE((SELECT MAX(id_atendimento) FROM ATENDIMENTO), 1))^;
+SELECT setval('pessoa_id_pessoa_seq', COALESCE((SELECT MAX(id_pessoa) FROM PESSOA), 1))^;
